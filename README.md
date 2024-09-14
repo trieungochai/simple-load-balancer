@@ -1,5 +1,3 @@
-![alt text](<Screenshot 2024-09-09 at 23.17.36.png>)
-
 Load balancers are crucial in modern software development. If you've ever wondered how requests are distributed across multiple servers, or why certain websites feel faster even during heavy traffic, the answer often lies in efficient load balancing.
 
 ### What is a Load Balancer?
