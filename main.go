@@ -18,6 +18,13 @@ type Server struct {
 	Mutex     sync.Mutex
 }
 
+type Config struct {
+	Port                string   `json:"port"`
+	HealthCheckInterval string   `json:"healthCheckInterval"`
+	Servers             []string `json:"servers"`
+}
+
+// round robin algorithm implementation to distribute load across servers
 func (lb *LoadBalancer) getNextServer(servers []*Server) *Server {
 	lb.Mutex.Lock()
 	defer lb.Mutex.Unlock()
