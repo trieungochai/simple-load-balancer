@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"net/url"
+	"os"
 	"sync"
 )
 
@@ -22,6 +24,22 @@ type Config struct {
 	Port                string   `json:"port"`
 	HealthCheckInterval string   `json:"healthCheckInterval"`
 	Servers             []string `json:"servers"`
+}
+
+func loadConfig(file string) (Config, error) {
+	var config Config
+
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return config, err
+	}
+
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return config, err
+	}
+
+	return config, nil
 }
 
 // round robin algorithm implementation to distribute load across servers
