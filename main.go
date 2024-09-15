@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"os"
 	"sync"
@@ -29,16 +30,20 @@ type Config struct {
 func loadConfig(file string) (Config, error) {
 	var config Config
 
+	// Read the contents of the config file
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return config, err
+		return config, fmt.Errorf("failed to read config file: %w", err)
 	}
 
+	// Unmarshal JSON data into the Config struct
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		return config, err
+		// Return an empty config and the error if unmarshaling fails
+		return config, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
+	// Return the successfully populated config
 	return config, nil
 }
 
