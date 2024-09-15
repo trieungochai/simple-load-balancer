@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"sync"
@@ -21,6 +22,12 @@ type Server struct {
 	URL       *url.URL
 	IsHealthy bool
 	Mutex     sync.Mutex
+}
+
+// When the load balancer receives a request, it forwards the request to the next available server using a reverse proxy.
+// In Golang, the httputil package provides a built-in way to handle reverse proxying, and we will use it in our code through the ReverseProxy function:
+func (s *Server) ReverseProxy() *httputil.ReverseProxy {
+	return httputil.NewSingleHostReverseProxy(s.URL)
 }
 
 type Config struct {
