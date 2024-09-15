@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"sync"
+	"time"
 )
 
 // Tracks which server to send the next request to and uses a mutex to ensure the logic for selecting servers is thread-safe
@@ -45,6 +47,47 @@ func loadConfig(file string) (Config, error) {
 
 	// Return the successfully populated config
 	return config, nil
+}
+
+// health check function that runs in given interval to check health of servers.
+// This healthCheck function performs periodic health checks on a backend server
+// using the HTTP HEAD request to see if the server is reachable and responding with a status code of 200 OK.
+func healthChecks(s *Server, healthCheckInterval time.Duration) {
+	// Ticker for periodic health checks
+	ticker := time.NewTicker(healthCheckInterval)
+	defer ticker.Stop()
+
+	// Create an HTTP client with a custom timeout
+	client := &http.Client{
+		Timeout: 5 * time.Second, // Adjust timeout as needed
+	}
+
+	// Runs the health check periodically at intervals of healthCheckInterval
+	for range ticker.C {
+		// Send an HTTP HEAD request to check if the server is up
+		res, err := client.Head(s.URL.String())
+
+		// Lock the server's mutex to update health status
+		s.Mutex.Lock()
+
+		if err != nil {
+			fmt.Printf("Error checking %s: %v\n", s.URL, err)
+			s.IsHealthy = false
+		} else if res.StatusCode != http.StatusOK {
+			fmt.Printf("%s is down (status code: %d)\n", s.URL, res.StatusCode)
+			s.IsHealthy = false
+		} else {
+			s.IsHealthy = true
+		}
+
+		// Ensure the response body is closed
+		if res != nil {
+			res.Body.Close()
+		}
+
+		// Unlock the mutex after updating the status
+		s.Mutex.Unlock()
+	}
 }
 
 // round robin algorithm implementation to distribute load across servers
